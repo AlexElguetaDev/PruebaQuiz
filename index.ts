@@ -46,7 +46,7 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
 
         const response = await openai.createCompletion({ 
             model: 'text-davinci-003', 
-            prompt: `Genera ${data.numberQuestions} preguntas sobre ${data.topics} con ${data.numberOptions} opciones de dificultad ${data.difficulty} en el idioma ${data.language}, ${data.correct}, el resultado debe estar en formato JSON con las claves en inglés.`, 
+            prompt: `Genera ${data.numberQuestions} preguntas sobre ${data.topics} con ${data.numberOptions} opciones de dificultad ${data.difficulty} en el idioma ${data.language}, ${data.correct}, el resultado debe estar en formato JSON con las claves en inglés, sin saltos de linea.`, 
             temperature: 0, 
             top_p: 1,
             frequency_penalty: 0,
@@ -62,7 +62,7 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
     }
 });
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8080;
 const server = app.listen(port, () => {
   console.info(`🚀 Server ready at http://localhost:${port}`);
 });
