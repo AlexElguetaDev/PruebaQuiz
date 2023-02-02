@@ -1,12 +1,12 @@
 import { Configuration, OpenAIApi } from 'openai';
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
+import express = require("express");
+import bodyparser = require("body-parser");
+import cors = require("cors");
 import * as z from 'zod';
 require('dotenv').config();
 
 const app = express();
-app.use(bodyParser.json());
+app.use(bodyparser.json());
 app.use(cors());
 
 const config = new Configuration({ 
@@ -30,6 +30,7 @@ const requestSchema = z.object({
     difficulty: z.enum(["School", "Advanced"]),
     correct: z.string()
 }).required();
+
 
 app.get('/', (req: express.Request, res: express.Response) => {
     res.send('Welcome to the LarnU Quiz');
@@ -61,4 +62,15 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
     }
 });
 
-app.listen(3000, () => console.log('Listening on port 3000'));
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => {
+  console.info(`🚀 Server ready at http://localhost:${port}`);
+});
+
+process.on('SIGINT', () => {
+  console.info('Shutting down server');
+  server.close(() => {
+    console.info('Server shut down');
+    process.exit(0);
+  });
+});
