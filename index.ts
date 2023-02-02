@@ -1,20 +1,20 @@
-import { Configuration, OpenAIApi } from 'openai'; // importamos la configuración de OpenAI Api
-import express = require('express'); // importamos express
-import bodyParser = require('body-parser'); // importamos middleware bodyParser
-import cors = require('cors'); // importamos middleware cors
-require('dotenv').config(); // importamos dotenv y su configuración
+import { Configuration, OpenAIApi } from 'openai';
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import * as z from 'zod';
+require('dotenv').config();
 
-const app = express(); // express
-app.use(bodyParser.json()); // añadimos bodyParser a la app
-app.use(cors()); // añadimos middleware cors
+const app = express();
+app.use(bodyParser.json());
+app.use(cors());
 
 const config = new Configuration({ 
-    apiKey: process.env.API_TOKEN // proporcionamos un api key
+    apiKey: process.env.API_TOKEN as string
 });
 
-const openai = new OpenAIApi(config); // instanciamos OpenAI
+const openai = new OpenAIApi(config);
 
-// objeto que almacena las opciones predeterminados
 const options = {
     questions: 5,
     languages: ["English", "Spanish"],
@@ -22,77 +22,40 @@ const options = {
     difficulty: ["School", "Advanced"]
 };
 
-// ruta raiz que nos da la bienvenida
-app.get('/', (req, res) => {
+const requestSchema = z.object({
+    topics: z.string(),
+    numberQuestions: z.number().positive(),
+    language: z.enum(["English", "Spanish"]),
+    numberOptions: z.number().positive(),
+    difficulty: z.enum(["School", "Advanced"]),
+    correct: z.string()
+}).required();
+
+app.get('/', (req: express.Request, res: express.Response) => {
     res.send('Welcome to the LarnU Quiz');
 });
 
-// ruta que responde con las opciones predeterminadas
-app.get('/options', (req, res) => {
+app.get('/options', (req: express.Request, res: express.Response) => {
     res.send(options);
 });
 
-// ruta que nos genera preguntas
 app.post('/generate', async (req: express.Request, res: express.Response) => {
-    // desustructuramos el cuerpo de la solicitud
-    const { topics, numberQuestions, language, numberOptions, difficulty, correct } = req.body;
-    const languages = ["English", "Spanish"];
-    const difficulties = ["School", "Advanced"];
-
-    // validamos que nos proporcionen todos los datos
-    if (!topics || !numberQuestions || !language || !numberOptions || !difficulty || !correct) {
-        res.status(400).send({ error: 'All fields are required.' });
-        return;
-    }
-    
-    // validamos que lenguaje sea "English" o "Spanish"
-    if (!languages.includes(language)) {
-        res.status(400).send({ error: 'Invalid language, must be "English" or "Spanish".' });
-        return;
-    }
-
-    // validamos que lenguaje sea "School" o "Advanced"
-    if (!difficulties.includes(difficulty)) {
-        res.status(400).send({ error: 'Invalid difficulty, must be "School" or "Advanced".' });
-    }
-
-    // validar que "topics", "language", "correct" sean string
-    if (typeof topics !== 'string' || typeof language !== 'string' || typeof correct !== 'string') {
-        res.status(400).send({ error: 'Topics, Language and Correct fields must be strings.' });
-        return;
-    }
-
-    // validar que "numberQuestions" y "numberOptions" sean number
-    if (typeof numberQuestions !== 'number' || typeof numberOptions !== 'number') {
-        res.status(400).send({ error: 'Number Questions and Number Options fields must be numbers.' });
-        return;
-    }
-
-    // validamos que "numberQuestions" y "numberOptions" sean numeros enteros
-    if (!Number.isInteger(numberQuestions) || !Number.isInteger(numberOptions)) {
-        res.status(400).send({ error: 'Number Questions and Number Options fields must be integers.' });
-        return;
-    }
-
-    // validamos que "numberQuestions" y "numberOptions" sean mayores que 0
-    if (numberQuestions <= 0 || numberOptions <= 0) {
-        res.status(400).send({ error: 'Number Questions and Number Options fields must be greater than 0.' });
-        return;
-    }
-
     try {
-        const response = await openai.createCompletion({ // este metodo envia una solicitud con los parametros que tenemos a continuación
-            model: 'text-davinci-003', // modelo d
-            prompt: `Genera ${numberQuestions} preguntas sobre ${topics} con ${numberOptions} opciones de dificultad ${difficulty} en el idioma ${language}, ${correct}, el resultado debe estar en formato JSON con las claves en inglés.`, // peticion
+        const data = requestSchema.parse(req.body);
+
+        const response = await openai.createCompletion({ 
+            model: 'text-davinci-003', 
+            prompt: `Genera ${data.numberQuestions} preguntas sobre ${data.topics} con ${data.numberOptions} opciones de dificultad ${data.difficulty} en el idioma ${data.language}, ${data.correct}, el resultado debe estar en formato JSON con las claves en inglés.`, 
             temperature: 0, 
             top_p: 1,
             frequency_penalty: 0,
             presence_penalty: 0,
             max_tokens: 2000
         });
+
         const message = { message: response.data.choices[0].text };
         res.send(message);
-    } catch (err) { // manejo de errores
+    } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'An error occurred while generating the quiz. Please try again later.' });
     }
