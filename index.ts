@@ -1,48 +1,101 @@
-import { Configuration, OpenAIApi } from 'openai'; // importamos las clases Configuration y OpenAIApi desde la librería 'openai'
-import express = require('express'); // importamos la clase express
-import bodyParser = require('body-parser'); // importamos el middleware body-parser
-import cors = require('cors'); // importamos el middleware cors
-require('dotenv').config(); // importamos la configuración desde el archivo .env
+import { Configuration, OpenAIApi } from 'openai'; // importamos la configuración de OpenAI Api
+import express = require('express'); // importamos express
+import bodyParser = require('body-parser'); // importamos middleware bodyParser
+import cors = require('cors'); // importamos middleware cors
+require('dotenv').config(); // importamos dotenv y su configuración
 
-const app = express(); // inicializamos una instancia de express
-app.use(bodyParser.json()); // configuramos body-parser para recibir JSON
-app.use(cors()); // habilitamos CORS
+const app = express(); // express
+app.use(bodyParser.json()); // añadimos bodyParser a la app
+app.use(cors()); // añadimos middleware cors
 
-const config = new Configuration({
-    apiKey: process.env.API_TOKEN // obtenemos la API key desde el archivo .env
+const config = new Configuration({ 
+    apiKey: process.env.API_TOKEN // proporcionamos un api key
 });
 
-const openai = new OpenAIApi(config); // inicializamos una instancia de OpenAIApi con la configuración anterior
+const openai = new OpenAIApi(config); // instanciamos OpenAI
 
-app.get('/', (req: express.Request, res: express.Response) => { // manejamos la ruta principal
-    res.send('Bienvenido a la Quiz de LarnU') // enviamos un mensaje de bienvenida
-})
+// objeto que almacena las opciones predeterminados
+const options = {
+    questions: 5,
+    languages: ["English", "Spanish"],
+    alternatives: 4,
+    difficulty: ["School", "Advanced"]
+};
 
-app.get('/options', (req: express.Request, res: express.Response) => { // manejamos la ruta '/options'
-    res.send({ // emviamos las options en un objeto JSON
-        "questions": 5, // valor entero que representa el numero de opciones
-        "languages": ["English", "Spanish"], // arreglo de strings que representa los languages
-        "alternatives": 4, // valor entero que representa el numero de alternativas por question
-        "difficulty": ["School", "Advanced"] // arreglo de strings que representa la dificultad
-    });
+// ruta raiz que nos da la bienvenida
+app.get('/', (req, res) => {
+    res.send('Welcome to the LarnU Quiz');
 });
 
-app.post('/generate', async (req: express.Request, res: express.Response) => { // manejamos la ruta '/generate'
+// ruta que responde con las opciones predeterminadas
+app.get('/options', (req, res) => {
+    res.send(options);
+});
+
+// ruta que nos genera preguntas
+app.post('/generate', async (req: express.Request, res: express.Response) => {
+    // desustructuramos el cuerpo de la solicitud
+    const { topics, numberQuestions, language, numberOptions, difficulty, correct } = req.body;
+    const languages = ["English", "Spanish"];
+    const difficulties = ["School", "Advanced"];
+
+    // validamos que nos proporcionen todos los datos
+    if (!topics || !numberQuestions || !language || !numberOptions || !difficulty || !correct) {
+        res.status(400).send({ error: 'All fields are required.' });
+        return;
+    }
+    
+    // validamos que lenguaje sea "English" o "Spanish"
+    if (!languages.includes(language)) {
+        res.status(400).send({ error: 'Invalid language, must be "English" or "Spanish".' });
+        return;
+    }
+
+    // validamos que lenguaje sea "School" o "Advanced"
+    if (!difficulties.includes(difficulty)) {
+        res.status(400).send({ error: 'Invalid difficulty, must be "School" or "Advanced".' });
+    }
+
+    // validar que "topics", "language", "correct" sean string
+    if (typeof topics !== 'string' || typeof language !== 'string' || typeof correct !== 'string') {
+        res.status(400).send({ error: 'Topics, Language and Correct fields must be strings.' });
+        return;
+    }
+
+    // validar que "numberQuestions" y "numberOptions" sean number
+    if (typeof numberQuestions !== 'number' || typeof numberOptions !== 'number') {
+        res.status(400).send({ error: 'Number Questions and Number Options fields must be numbers.' });
+        return;
+    }
+
+    // validamos que "numberQuestions" y "numberOptions" sean numeros enteros
+    if (!Number.isInteger(numberQuestions) || !Number.isInteger(numberOptions)) {
+        res.status(400).send({ error: 'Number Questions and Number Options fields must be integers.' });
+        return;
+    }
+
+    // validamos que "numberQuestions" y "numberOptions" sean mayores que 0
+    if (numberQuestions <= 0 || numberOptions <= 0) {
+        res.status(400).send({ error: 'Number Questions and Number Options fields must be greater than 0.' });
+        return;
+    }
+
     try {
-        const response = await openai.createCompletion({ // llamamos al método createCompletion de la instancia de OpenAIApi
-            model: 'text-davinci-003', // especificamos el modelo a utilizar
-            prompt: req.body.message, // obtenemos el mensaje a completar desde el cuerpo de la petición
-            temperature: 0,
+        const response = await openai.createCompletion({ // este metodo envia una solicitud con los parametros que tenemos a continuación
+            model: 'text-davinci-003', // modelo d
+            prompt: `Genera ${numberQuestions} preguntas sobre ${topics} con ${numberOptions} opciones de dificultad ${difficulty} en el idioma ${language}, ${correct}, el resultado debe estar en formato JSON con las claves en inglés.`, // peticion
+            temperature: 0, 
             top_p: 1,
             frequency_penalty: 0,
             presence_penalty: 0,
             max_tokens: 2000
         });
-        const message = { message: response.data.choices[0].text }; // obtenemos el texto completado
-        res.send(message); // enviamos la respuesta al cliente
-    } catch (err) { // manejamos cualquier error
-        res.send(err);
+        const message = { message: response.data.choices[0].text };
+        res.send(message);
+    } catch (err) { // manejo de errores
+        console.error(err);
+        res.status(500).send({ error: 'An error occurred while generating the quiz. Please try again later.' });
     }
 });
 
-app.listen(3000, () => console.log('Escuchando en el puerto 3000'));
+app.listen(3000, () => console.log('Listening on port 3000'));
