@@ -78,7 +78,7 @@ app.post('/generate', function (req, res) { return __awaiter(void 0, void 0, voi
                 data = requestSchema.parse(req.body);
                 return [4 /*yield*/, openai.createCompletion({
                         model: 'text-davinci-003',
-                        prompt: "Genera ".concat(data.numberQuestions, " preguntas sobre ").concat(data.topics, " con ").concat(data.numberOptions, " opciones de dificultad ").concat(data.difficulty, " en el idioma ").concat(data.language, ", ").concat(data.correct, ", el resultado debe estar en formato JSON con las claves en ingl\u00E9s, sin saltos de linea."),
+                        prompt: "Por favor, genera para m\u00ED ".concat(data.numberQuestions, " preguntas sobre ").concat(data.topics, ", cada una con ").concat(data.numberOptions, " opciones. Me gustar\u00EDa que las preguntas sean de diferentes tipos (verdadero o falso, selecci\u00F3n m\u00FAltiple, preguntas cerradas y abiertas) y que la cantidad de cada tipo sea aleatoria. Adem\u00E1s, me gustar\u00EDa que tengan un nivel de dificultad ").concat(data.difficulty, ", ").concat(data.correct, ". Por favor, env\u00EDame el resultado en formato JSON."),
                         temperature: 0,
                         top_p: 1,
                         frequency_penalty: 0,

@@ -46,7 +46,7 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
 
         const response = await openai.createCompletion({ 
             model: 'text-davinci-003', 
-            prompt: `Genera ${data.numberQuestions} preguntas sobre ${data.topics} con ${data.numberOptions} opciones de dificultad ${data.difficulty} en el idioma ${data.language}, ${data.correct}, el resultado debe estar en formato JSON con las claves en inglés, sin saltos de linea.`, 
+            prompt: `Por favor, genera para mí ${data.numberQuestions} preguntas sobre ${data.topics}, cada una con ${data.numberOptions} opciones. Me gustaría que las preguntas sean de diferentes tipos (verdadero o falso, selección múltiple, preguntas cerradas y abiertas) y que la cantidad de cada tipo sea aleatoria. Además, me gustaría que tengan un nivel de dificultad ${data.difficulty}, ${data.correct}. Por favor, envíame el resultado en formato JSON.`,
             temperature: 0, 
             top_p: 1,
             frequency_penalty: 0,

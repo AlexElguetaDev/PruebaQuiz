@@ -12,4 +12,4 @@ Luego, se define un esquema de solicitud de validación para validar la entrada 
 
 La aplicación Express define dos rutas GET: una que envía un mensaje de bienvenida y otra que envía las opciones predeterminadas. También define una ruta POST para generar preguntas. La ruta POST valida la entrada del usuario con la ayuda del esquema de solicitud definido anteriormente y luego envía una solicitud de compleción a la API de OpenAI. La respuesta de la API se envía al usuario en formato JSON.
 
-Finalmente, la aplicación escucha en el puerto 3000 y muestra un mensaje en la consola indicando que está lista para recibir solicitudes.
+Finalmente, la aplicación escucha en el puerto 8080 y muestra un mensaje en la consola indicando que está lista para recibir solicitudes.
