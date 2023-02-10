@@ -46,7 +46,7 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
 
         const response = await openai.createCompletion({ 
             model: 'text-davinci-003', 
-            prompt: `Por favor, genera para mí ${data.numberQuestions} preguntas sobre ${data.topics} y enumerame cada pregunta, cada una con ${data.numberOptions} opciones. Me gustaría que las preguntas sean de diferentes tipos (verdadero o falso, selección múltiple, preguntas cerradas y abiertas) y que la cantidad de cada tipo sea aleatoria. Además, me gustaría que tengan un nivel de dificultad ${data.difficulty}, ${data.correct}. Por favor, envíame el resultado en formato JSON.`,
+            prompt: `Por favor, diseña una estructura JSON que ofrezca una colección completa de ${data.numberQuestions} preguntas que abarquen una amplia gama de temas relacionados con ${data.topics}. Sería ideal que cada pregunta cuente con ${data.numberOptions} opciones para elegir, distribuidas de manera aleatoria entre diferentes tipos de preguntas, como selección múltiple, preguntas cerradas y abiertas, para proporcionar una experiencia de aprendizaje desafiante y variada. Por favor, tenga en cuenta un nivel de dificultad de ${data.difficulty} y ${data.correct}. Además, es esencial que se utilicen claves en inglés y que las respuestas y preguntas se presenten en ${data.language} para garantizar una fácil comprensión y accesibilidad de la estructura JSON.`,
             temperature: 0, 
             top_p: 1,
             frequency_penalty: 0,
@@ -54,8 +54,9 @@ app.post('/generate', async (req: express.Request, res: express.Response) => {
             max_tokens: 2000
         });
 
-        const message = { message: response.data.choices[0].text };
-        res.send(message);
+        const msg = { message: response.data.choices[0].text };
+        let newMessage = msg.message;
+        res.send(newMessage);
     } catch (err) {
         console.error(err);
         res.status(500).send({ error: 'An error occurred while generating the quiz. Please try again later.' });
