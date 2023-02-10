@@ -9,11 +9,11 @@ Requisitos previos
 
 Clone este repositorio: 
 ```sh
-git clone https://github.com/quizify-us/quizgtp-api.git
+git clone https://github.com/esterepo
 ```
 Acceda al directorio clonado:
 ```sh
-cd quizgtp-api
+cd esterepo
 ```
 Instale las dependencias: 
 ```sh
